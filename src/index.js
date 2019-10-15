@@ -1,2 +1,98 @@
-// It might be a good idea to add event listener to make sure this file 
-// only runs after the DOM has finshed loading. 
+// HAVE NOT DONE BONUS DELIVERABLES \\
+
+document.addEventListener('DOMContentLoaded', (event) => {
+  getQuotes()
+})
+
+
+const quoteListUl = document.querySelector('#quote-list')
+const newQuoteForm = document.querySelector('#new-quote-form')
+
+
+function getQuotes() {
+  fetch('http://localhost:3000/quotes?_embed=likes')
+  .then(response => response.json())
+  .then(quotesArray => {
+    quotesArray.forEach(quote => {
+      addQuoteLiToQuoteListUl(quote)
+    })
+  })
+}
+
+
+function addQuoteLiToQuoteListUl(quote) {
+  let quoteLi = document.createElement('li')
+  let likesCount = quote.likes.length
+
+  quoteLi.className = 'quote-card'
+  quoteLi.innerHTML = 
+    ` <blockquote class="blockquote">
+        <p class="mb-0">${quote.quote}</p>
+        <footer class="blockquote-footer">${quote.author}</footer>
+        <br>
+        <button class='btn-success'>Likes: <span>${likesCount}</span></button>
+        <button class='btn-danger'>Delete</button>
+      </blockquote>`
+
+  quoteLi.addEventListener('click', (event) => {
+    if (event.target.className === 'btn-danger') {
+      fetch(`http://localhost:3000/quotes/${quote.id}`, {
+      method: 'DELETE'
+      })
+      .then(response => response.json())
+      .then(deleteQuote => {
+        event.target.parentElement.parentElement.remove()
+      })
+    }
+  })
+
+
+  quoteLi.addEventListener('click', (event) => {
+    let id = quote.id
+   
+    if (event.target.className === 'btn-success') {
+      fetch('http://localhost:3000/likes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        quoteId: id
+      })
+      })
+      .then(response => response.json())
+      .then(newLike => {
+        quote.likes.push(newLike)
+        event.target.children[0].innerText = quote.likes.length
+      })
+    }
+  })
+
+  quoteListUl.append(quoteLi)
+}
+
+
+newQuoteForm.addEventListener('submit', (event) => {
+  event.preventDefault()
+  let newQuote = event.target['new-quote'].value
+  let newAuthor = event.target.author.value
+
+  fetch('http://localhost:3000/quotes', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      quote: newQuote,
+      author: newAuthor,
+      likes: [],
+      createdAt: new Date()
+    })
+  })
+  .then(response => response.json())
+  .then(newQuote => {
+    addQuoteLiToQuoteListUl(newQuote)
+  })
+})
