@@ -1,4 +1,4 @@
-// HAVE NOT DONE BONUS DELIVERABLES \\
+// HAVE NOT COMPLETED BONUS DELIVERABLES \\
 
 document.addEventListener('DOMContentLoaded', (event) => {
   getQuotes()
@@ -22,7 +22,7 @@ function getQuotes() {
 
 function addQuoteLiToQuoteListUl(quote) {
   let quoteLi = document.createElement('li')
-  let likesCount = quote.likes.length
+  let likesCount = quote.likes.length 
 
   quoteLi.className = 'quote-card'
   quoteLi.innerHTML = 
@@ -47,19 +47,18 @@ function addQuoteLiToQuoteListUl(quote) {
   })
 
 
-  quoteLi.addEventListener('click', (event) => {
-    let id = quote.id
-   
+  quoteLi.addEventListener('click', (event) => { 
     if (event.target.className === 'btn-success') {
       fetch('http://localhost:3000/likes', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        quoteId: id
-      })
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          quoteId: quote.id,
+          createdAt: Date.now()
+        })
       })
       .then(response => response.json())
       .then(newLike => {
@@ -70,6 +69,18 @@ function addQuoteLiToQuoteListUl(quote) {
   })
 
   quoteListUl.append(quoteLi)
+}
+
+
+function addLikesKeyToQuote(newQuote) {
+  fetch('http://localhost:3000/quotes?_embed=likes')
+  .then(response => response.json())
+  .then(quotesArray => {
+    let foundQuote = quotesArray.find(quote => {
+      return quote.id === newQuote.id
+    })
+    addQuoteLiToQuoteListUl(foundQuote)
+  })
 }
 
 
@@ -86,13 +97,11 @@ newQuoteForm.addEventListener('submit', (event) => {
     },
     body: JSON.stringify({
       quote: newQuote,
-      author: newAuthor,
-      likes: [],
-      createdAt: new Date()
+      author: newAuthor
     })
   })
   .then(response => response.json())
   .then(newQuote => {
-    addQuoteLiToQuoteListUl(newQuote)
+    addLikesKeyToQuote(newQuote)
   })
 })
